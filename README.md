@@ -20,7 +20,7 @@ This project is a Node.js-based web application designed to verify the authentic
 ---
 
 ## Prerequisites
-Before running this project, ensure you have the following installed on your system:
+Before running this project, please install the following:
 1. **Node.js** (v18 or later) - [Download Node.js](https://nodejs.org/)
 2. **npm** (comes with Node.js)
 4. **OpenAI GPT API Key** 
