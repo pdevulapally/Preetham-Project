@@ -23,7 +23,6 @@ This project is a Node.js-based web application designed to verify the authentic
 Before running this project, ensure you have the following installed on your system:
 1. **Node.js** (v18 or later) - [Download Node.js](https://nodejs.org/)
 2. **npm** (comes with Node.js)
-3. **Git** - [Download Git](https://git-scm.com/)
 4. **OpenAI GPT API Key** 
 
 ---
@@ -32,7 +31,6 @@ Before running this project, ensure you have the following installed on your sys
 
 ### Step 1: Clone the Repository
 Open your terminal and run:
-```bash
 git clone https://github.com/pdevulapally/Preetham-Project.git
 
 ### Step 2: Install Dependencies
