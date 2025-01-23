@@ -1,0 +1,376 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  background-color: #121212;
+  color: #d1d1d1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Container Styles */
+.login-container {
+  background: #1d1e20;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.login-container h1 {
+  font-size: 26px;
+  margin-bottom: 30px;
+  color:  #00ffcc;
+  font-weight: 700;
+}
+
+/* Form Styles */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-form input {
+  padding: 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #2b2c2e;
+  color: #fff;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.login-form input::placeholder {
+  color: #888;
+}
+
+.login-form input:focus {
+  outline: none;
+  border: 1px solid  #00ffcc;
+  box-shadow: 0 0 6px rgba(0, 209, 178, 0.7);
+}
+
+/* Button Styles */
+.login-form button {
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00ffcc, #007c7c);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-form button:hover {
+  background: linear-gradient(135deg, #00b89a, #00d1b2);
+}
+
+.forgot-password {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.forgot-password a {
+  color: #00ffcc;
+  text-decoration: none;
+}
+
+.signup-link {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.signup-link a {
+  color:  #00ffcc;
+  text-decoration: underline;
+}
+
+.login-container::after {
+  content: "";
+  display: block;
+  width: 50px;
+  height: 3px;
+  background:  #00ffcc;
+  margin: 20px auto;
+  border-radius: 2px;
+}
+
+/* Smooth Animations */
+.login-form input,
+.login-form button {
+  transition: transform 0.3s ease-in-out;
+}
+
+.login-form input:focus,
+.login-form button:focus {
+  transform: scale(1.02);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: white; 
+  font-family: 'Orbitron', sans-serif; 
+  font-size: 16px;
+  margin: 20px 0; 
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid white;
+  margin: 0 10px; 
+}
+
+
+/* Google Sign-In Button Styles */
+.gsi-material-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  color: #1d1e20;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  width: 100%;
+  max-width: 400px;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease, transform 0.2s;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 20px;
+}
+
+.gsi-material-button:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.gsi-material-button:focus {
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.gsi-material-button-state {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.gsi-material-button-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Forgot Password Modal Styles */
+.forgotpassword-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.forgotpassword-content {
+  background-color: #2b2c2e;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  color: #e0e0e0;
+}
+
+.forgotpassword-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgotpassword-header h2 {
+  color: #00ffcc;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.close-forgotpassword {
+  cursor: pointer;
+  font-size: 24px;
+  color: #e0e0e0;
+}
+
+.forgotpassword-content p {
+  color: #b3b3b3;
+  font-size: 1rem;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+#forgot-email {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #00ffcc;
+  border-radius: 5px;
+  background-color: #1c1c1c;
+  color: #e0e0e0;
+  margin-bottom: 15px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+#forgot-email:focus {
+  border-color: #007c7c;
+  outline: none;
+}
+
+.forgotpassword-submit {
+  display: inline-block;
+  background: #00ffcc;
+  color: #fff;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.forgotpassword-submit:hover {
+  background: #00ffcc;
+  transform: translateY(-3px);
+}
+
+/* Animation for modal appearance */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+/* Google Icon Styles */
+.gsi-material-button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gsi-material-button-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.gsi-material-button-contents {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 30px 20px;
+  }
+
+  .login-container h1 {
+    font-size: 22px;
+  }
+
+  .login-form input,
+  .login-form button {
+    font-size: 14px;
+  }
+
+  .forgot-password,
+  .signup-link {
+    font-size: 13px;
+  }
+
+  .gsi-material-button {
+    font-size: 14px;
+  }
+
+  .gsi-material-button-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.reset-message {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.reset-message.success {
+  background-color: #00ffcc;
+  color: #fff;
+}
+
+.reset-message.error {
+  background-color: #ff6b6b;
+  color: #fff;
+}
+
+.message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #00ffcc; /* Light neon blue */
+  color: #121212; /* Dark text for contrast */
+  padding: 15px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  animation: fadeOut 5s forwards;
+}
+
+.message.success {
+  background-color: #00ffcc;
+  color: #fff;
+}
+
+.message.error {
+  background-color: #ff6b6b;
+  color: #fff;
+}
+

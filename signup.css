@@ -1,0 +1,163 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #1d1e20, #151516);
+  color: #e0e0e0;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Container Styles */
+.signup-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 0 20px;
+  background: rgba(29, 30, 32, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+}
+
+.signup-container h1 {
+  font-size: 34px;
+  margin-bottom: 25px;
+  color: #00d1b2;
+  text-shadow: 0 4px 8px rgba(0, 209, 178, 0.3);
+}
+
+/* Form Styles */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 400px;
+}
+
+input {
+  padding: 14px;
+  font-size: 16px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #2b2c2e;
+  color: #fff;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+input::placeholder {
+  color: #b0b0b0;
+}
+
+input:focus {
+  outline: none;
+  border-color: #00d1b2;
+  box-shadow: 0 0 12px rgba(0, 209, 178, 0.6);
+}
+
+/* Button Styles */
+button {
+  padding: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00b89a, #00d1b2);
+  color: #1d1e20;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #00b89a, #00d1b2);
+  transform: scale(1.03);
+}
+
+/* Login Link */
+.login-link {
+  margin-top: 20px;
+  font-size: 15px;
+}
+
+.login-link a {
+  color: #00d1b2;
+  text-decoration: underline;
+}
+
+/* Accessibility Enhancements */
+input:focus-visible {
+  outline: 3px solid #00d1b2;
+}
+
+button:focus-visible {
+  outline: 3px solid #00d1b2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .signup-container {
+    padding: 0 12px;
+  }
+
+  .signup-container h1 {
+    font-size: 30px;
+  }
+
+  .signup-form {
+    width: 90%;
+  }
+
+  button {
+    font-size: 16px;
+  }
+
+  .login-link {
+    font-size: 14px;
+  }
+}
+
+/* Password Instruction Styles */
+.signup-form small {
+  font-size: 14px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  display: block;
+  text-align: center;
+  background-color: rgba(255, 107, 107, 0.1);
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.password-instructions {
+  margin-top: 10px;
+  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.password-instructions small {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.success-message {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #00d1b2;
+  color: #fff;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 209, 178, 0.5);
+}

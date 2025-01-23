@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <script type="module">
+    // Firebase Configuration
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzSwRJM27Iyay8RYjXDbSeb_CEI7OwdGc",
+      authDomain: "ai-detection-tool.firebaseapp.com",
+      projectId: "ai-detection-tool",
+      storageBucket: "ai-detection-tool.firebasestorage.app",
+      messagingSenderId: "70262219338",
+      appId: "1:70262219338:web:4cd7ca550d40f3709ffcb3",
+      measurementId: "G-SZMLKB4WQG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const newsTableBody = document.querySelector("#news-table-body");
+      const contactTableBody = document.querySelector("#contact-table-body");
+
+      try {
+        // Fetch News Submissions
+        const newsCollection = collection(db, "news_submissions");
+        const newsSnapshot = await getDocs(newsCollection);
+        newsSnapshot.forEach((doc) => {
+          const data = doc.data();
+          const row = `<tr>
+            <td>${data.title}</td>
+            <td>${data.submittedBy}</td>
+            <td>${data.submittedOn}</td>
+            <td class="actions">
+              <button class="approve" onclick="updateNewsStatus('${doc.id}', 'approved')">Approve</button>
+              <button class="deny" onclick="updateNewsStatus('${doc.id}', 'denied')">Deny</button>
+            </td>
+          </tr>`;
+          newsTableBody.innerHTML += row;
+        });
+
+        // Fetch Contact Submissions
+        const contactCollection = collection(db, "contact_submissions");
+        const contactSnapshot = await getDocs(contactCollection);
+        contactSnapshot.forEach((doc) => {
+          const data = doc.data();
+          const row = `<tr>
+            <td>${data.name}</td>
+            <td>${data.email}</td>
+            <td>${data.message}</td>
+            <td>${data.receivedOn}</td>
+          </tr>`;
+          contactTableBody.innerHTML += row;
+        });
+      } catch (error) {
+        console.error("Error fetching data from Firestore:", error);
+      }
+    });
+
+    async function updateNewsStatus(docId, status) {
+      try {
+        const newsDoc = doc(db, "news_submissions", docId);
+        await updateDoc(newsDoc, { status });
+        alert(`News status updated to ${status}`);
+        location.reload();
+      } catch (error) {
+        console.error("Error updating news status:", error);
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <img src="Images/AIverifilogo2.png" alt="Admin Logo">
+    </div>
+    <ul>
+      <li><a href="#">Dashboard</a></li>
+      <li><a href="#">Approve/Deny News</a></li>
+      <li><a href="#">Contact Submissions</a></li>
+      <li><a href="#">User Management</a></li>
+      <li><a href="#">Settings</a></li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1>Admin Dashboard</h1>
+      <button class="logout">Logout</button>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <h2>Pending News Submissions</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Submitted By</th>
+              <th>Submitted On</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="news-table-body">
+            <!-- Dynamic rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Contact Submissions</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Message</th>
+              <th>Received On</th>
+            </tr>
+          </thead>
+          <tbody id="contact-table-body">
+            <!-- Dynamic rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

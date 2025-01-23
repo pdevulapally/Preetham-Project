@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - AI News Verifier</title>
+  <link rel="stylesheet" href="signup.css">
+</head>
+<body>
+  <div class="signup-container">
+    <h1>Create Your Account</h1>
+    <form action="#" method="POST" class="signup-form">
+      <input type="email" id="signup-email" placeholder="Email" required>
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <div class="password-instructions">
+        <small id="length-requirement">At least 8 characters</small>
+        <small id="uppercase-requirement">At least one uppercase letter</small>
+        <small id="lowercase-requirement">At least one lowercase letter</small>
+        <small id="number-requirement">At least one number</small>
+        <small id="special-requirement">At least one special character</small>
+      </div>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p class="login-link">Already have an account? <a href="login.html">Login</a></p>
+    <div id="success-message" class="success-message" style="display: none;">Account created successfully!</div>
+  </div>
+
+  <script type="module" src="signup.js"></script>
+</body>
+</html>

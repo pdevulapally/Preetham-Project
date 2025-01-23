@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify News</title>
+  <link rel="stylesheet" href="verifier.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzSwRJM27Iyay8RYjXDbSeb_CEI7OwdGc",
+      authDomain: "ai-detection-tool.firebaseapp.com",
+      projectId: "ai-detection-tool",
+      storageBucket: "ai-detection-tool.appspot.com",
+      messagingSenderId: "70262219338",
+      appId: "1:70262219338:web:4cd7ca550d40f3709ffcb3",
+      measurementId: "G-SZMLKB4WQG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Check Authentication State
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          updateSidebar(user);
+        } else {
+          window.location.href = "login.html"; // Redirect to login if not authenticated
+        }
+      });
+
+      window.handleLogout = handleLogout;
+    });
+
+    function updateSidebar(user) {
+      const userAvatar = document.querySelector(".user-avatar");
+      const userName = document.querySelector(".user-profile h4");
+      const userRole = document.querySelector(".user-profile p");
+
+      if (user) {
+        userName.textContent = user.displayName || "User";
+        userRole.textContent = user.email || "Email not available";
+
+        if (user.photoURL) {
+          userAvatar.src = user.photoURL;
+          userAvatar.alt = `${user.displayName || "User"}'s profile photo`;
+        } else {
+          userAvatar.src = "Images/default-avatar.png";
+          userAvatar.alt = "Default profile photo";
+        }
+      }
+    }
+
+    function handleLogout() {
+      signOut(auth)
+        .then(() => {
+          window.location.href = "login.html";
+        })
+        .catch((error) => {
+          console.error("Error during logout:", error);
+        });
+    }
+  </script>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <a href="Home.html">
+          <img src="Images/AIverifilogo2.png" class="logo-icon" alt="AI News Verifier Logo">
+        </a>
+      </div>
+      <div class="burger sidebar-burger" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <div class="user-profile">
+      <img src="Images/Default_pfp.png" alt="User" class="user-avatar">
+      <h4>User Name</h4>
+      <p>AI News Verifier</p>
+    </div>
+    <ul class="menu">
+      <li>
+        <a href="history.html" class="menu-item">
+          <img src="Sidebar-icons/history.png" alt="History Icon" class="menu-icon"> History
+        </a>
+      </li>
+      <li>
+        <a href="favorites.html" class="menu-item">
+          <img src="Sidebar-icons/star.png" alt="Favorites Icon" class="menu-icon"> Starred
+        </a>
+      </li>
+      <li>
+        <a href="profile.html" class="menu-item">
+          <img src="Sidebar-icons/profile-user.png" alt="Profile Icon" class="menu-icon"> Profile
+        </a>
+      </li>
+    </ul>
+    <button class="logout-button" onclick="handleLogout()">
+      <img src="Sidebar-icons/logout.png" alt="Logout Icon" class="logout-icon">
+      Logout
+    </button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="burger main-burger" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="buttons-container">
+      <button class="report-button" onclick="window.location.href='report.html'">
+        <i class="fas fa-flag"></i> Report
+      </button>
+      <button class="share-button" id="share-now">
+        <i class="fas fa-share-alt"></i> Share Now
+      </button>
+    </div>
+
+    <section class="verifier-section">
+      <h1 class="section-title">Verify News</h1>
+      <p class="section-description">
+        Enter a URL or paste the content below, and click "Verify Now" to check the credibility of the news.
+      </p>
+      <div class="verifier-form">
+        <input type="text" id="news-input" placeholder="Paste a news URL or enter a query..." />
+        <button class="ai-button" id="verify-button">
+          <span class="text">Verify Now</span>
+          <span class="emoji">
+            <img src="Images/stars (1).png" alt="Star Icon" class="star-image">
+          </span>
+        </button>
+      </div>
+      <div id="verification-result" class="result-container">
+        <img id="loading-gif" class="loading-gif" src="Images/resultstaranimation-unscreen.gif" alt="Loading..." />
+        <div id="results-content" class="results-content" style="display: none;">
+          <!-- Results will appear here -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Tutorial Overlay -->
+<div id="tutorial-overlay" class="tutorial-overlay">
+  <div class="tutorial-container">
+    <div class="tutorial-header">
+      <h2>Welcome to the AI News Verifier</h2>
+      <button class="skip-tutorial" id="skip-tutorial">Skip</button>
+    </div>
+    <div class="tutorial-content">
+      <p class="tutorial-text">
+        Use the <span class="highlight">Verify News</span> section to check the credibility of news articles by entering a URL or text query.
+      </p>
+      <div class="tutorial-progress">
+        <div class="progress-step active"></div>
+        <div class="progress-step"></div>
+        <div class="progress-step"></div>
+      </div>
+      <div class="tutorial-buttons">
+        <button class="tutorial-btn prev-tutorial" id="prev-tutorial" style="display: none;">Previous</button>
+        <button class="tutorial-btn next-tutorial" id="next-tutorial">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script>
+    // Toggle Sidebar Visibility
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const steps = document.querySelectorAll(".tutorial-step");
+      const progressSteps = document.querySelectorAll(".progress-step");
+      const nextButton = document.getElementById("next-tutorial");
+      const prevButton = document.getElementById("prev-tutorial");
+      const skipButton = document.getElementById("skip-tutorial");
+      const overlay = document.getElementById("tutorial-overlay");
+
+      let currentStep = 0;
+
+      // Check if the tutorial has already been skipped
+      function checkTutorialStatus() {
+        const tutorialSkipped = localStorage.getItem("tutorialSkipped");
+        if (tutorialSkipped === "true") {
+          overlay.style.display = "none";
+        }
+      }
+
+      // Mark the tutorial as skipped
+      function markTutorialSkipped() {
+        localStorage.setItem("tutorialSkipped", "true");
+        overlay.style.display = "none";
+      }
+
+      // Function to display the current step
+      function showStep(index) {
+        steps.forEach((step, idx) => {
+          step.classList.toggle("active", idx === index);
+          progressSteps[idx].classList.toggle("active", idx <= index);
+        });
+
+        prevButton.style.display = index === 0 ? "none" : "inline-block";
+        nextButton.textContent = index === steps.length - 1 ? "Finish" : "Next";
+      }
+
+      // Next Button Click
+      nextButton.addEventListener("click", () => {
+        if (currentStep < steps.length - 1) {
+          currentStep++;
+          showStep(currentStep);
+        } else {
+          markTutorialSkipped(); // Mark tutorial as skipped when finished
+        }
+      });
+
+      // Previous Button Click
+      prevButton.addEventListener("click", () => {
+        if (currentStep > 0) {
+          currentStep--;
+          showStep(currentStep);
+        }
+      });
+
+      // Skip Button Click
+      skipButton.addEventListener("click", markTutorialSkipped);
+
+      // Initialize the tutorial
+      showStep(currentStep);
+      checkTutorialStatus(); // Check skip status on page load
+    });
+  </script>
+
+  <script> 
+    function showLoadingAnimation() {
+      const loadingGif = document.getElementById("loading-gif");
+      const resultsContent = document.getElementById("results-content");
+
+      // Show the GIF during loading
+      loadingGif.style.display = "block";
+      resultsContent.style.display = "none"; // Hide results during loading
+
+      // Simulate result generation delay (replace with your actual result logic)
+      setTimeout(() => {
+        // Hide GIF and show results
+        loadingGif.style.display = "none";
+        resultsContent.style.display = "block";
+        resultsContent.innerHTML = "<p>Your verified results will appear here!</p>"; // Replace with actual results
+      }, 5000); // Simulate a 5-second delay
+    }
+
+    // Function to show loading animation and send request
+    function verifyNews() {
+      const newsInput = document.getElementById("news-input").value;
+      const loadingGif = document.getElementById("loading-gif");
+      const resultsContent = document.getElementById("results-content");
+
+      if (!newsInput) {
+        alert("Please enter a news URL or text.");
+        return;
+      }
+
+      // Show loading animation
+      loadingGif.style.display = "block";
+      resultsContent.style.display = "none";
+
+    
+fetch('/verify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ input: newsInput }), // Ensure "input" matches backend expectation
+  })
+      .then(response => response.json())
+      .then(data => {
+        // Hide loading animation and show results
+        loadingGif.style.display = "none";
+        resultsContent.style.display = "block";
+        resultsContent.innerHTML = `<p>Result: ${data.result || 'No result available'}</p>`; // Use 'result' key
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        loadingGif.style.display = "none";
+        resultsContent.style.display = "block";
+        resultsContent.innerHTML = "<p>Error verifying news. Please try again.</p>";
+      });
+    }
+
+    // Attach event listener to the Verify Now button
+    document.getElementById("verify-button").addEventListener("click", verifyNews);
+  </script>
+</body>
+</html>

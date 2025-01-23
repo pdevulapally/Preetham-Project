@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report News</title>
+    <link rel="stylesheet" href="report.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
+    </script>
+</head>
+<body>
+       <header class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="Images/AIverifilogo2.png" alt="AI News Verifier Logo">
+            </a>
+            <nav class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="Home.html" class="active">Home</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="resources.html">Resources</a></li>
+                    <li><a href="verifier.html">AI Verifier</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="burger-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header> <!-- Navigation (reuse your existing navigation) -->
+
+    <main class="report-container">
+        <div class="report-header">
+            <h1>Report False Information</h1>
+            <p>Help us maintain the integrity of news by reporting potentially false information.</p>
+        </div>
+
+        <form id="reportForm" class="report-form">
+            <div class="form-group">
+                <label for="newsUrl">News URL or Source</label>
+                <input type="url" id="newsUrl" name="newsUrl" placeholder="https://example.com/news-article" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reportType">Type of False Information</label>
+                <select id="reportType" name="reportType" required>
+                    <option value="">Select a category</option>
+                    <option value="misinformation">Misinformation</option>
+                    <option value="disinformation">Disinformation</option>
+                    <option value="fake-news">Fake News</option>
+                    <option value="misleading">Misleading Content</option>
+                    <option value="manipulation">Manipulated Media</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Detailed Description</label>
+                <textarea id="description" name="description" rows="5" 
+                    placeholder="Please provide details about why you believe this information is false..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="evidence">Supporting Evidence (Optional)</label>
+                <textarea id="evidence" name="evidence" rows="3" 
+                    placeholder="Provide links or information that support your report..."></textarea>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="anonymous" name="anonymous">
+                <label for="anonymous">Submit Anonymously</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="window.history.back()">Cancel</button>
+                <button type="submit" class="btn-primary">Submit Report</button>
+            </div>
+        </form>
+
+        <!-- Success Modal -->
+        <div id="successModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <i class="fas fa-check-circle"></i>
+                    <h2>Report Submitted</h2>
+                </div>
+                <p>Thank you for helping to maintain the integrity of news. Verifi News will review your report.</p>
+                <button onclick="closeModal()" class="btn-primary">Close</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="report.js"></script>
+</body>
+</html> 

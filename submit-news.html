@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit News for Verification</title>
+  <link rel="stylesheet" href="submitnews.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <script type="module">
+    // Firebase Configuration
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+    import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzSwRJM27Iyay8RYjXDbSeb_CEI7OwdGc",
+      authDomain: "ai-detection-tool.firebaseapp.com",
+      projectId: "ai-detection-tool",
+      storageBucket: "ai-detection-tool.firebasestorage.app",
+      messagingSenderId: "70262219338",
+      appId: "1:70262219338:web:4cd7ca550d40f3709ffcb3",
+      measurementId: "G-SZMLKB4WQG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.querySelector(".upload-news-form");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const newsTitle = document.getElementById("news-title").value;
+        const newsDescription = document.getElementById("news-description").value;
+        const newsURL = document.getElementById("news-url").value;
+        const newsFile = document.getElementById("news-file").files[0];
+
+        try {
+          const docRef = await addDoc(collection(db, "news_submissions"), {
+            title: newsTitle,
+            description: newsDescription,
+            url: newsURL || null,
+            submittedOn: new Date().toISOString(),
+            fileName: newsFile ? newsFile.name : null,
+            status: "pending"
+          });
+
+          alert("News submitted successfully! Reference ID: " + docRef.id);
+          form.reset();
+        } catch (error) {
+          console.error("Error submitting news:", error);
+          alert("Error submitting news. Please try again.");
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <img src="Images/AIverifilogo2.png" alt="AI News Verifier Logo">
+      </a>
+      <nav class="nav-menu">
+        <ul class="nav-links">
+          <li><a href="Home.html" class="active">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="resources.html">Resources</a></li>
+          <li><a href="verifier.html">AI Verifier</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="burger-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Upload News Section -->
+  <section class="upload-news-section">
+    <h2>Submit News for Verification</h2>
+    <p>Submit news details or upload files to request verification. Our team will review and update you on its authenticity.</p>
+    
+    <form class="upload-news-form">
+      <div class="form-group">
+        <label for="news-title">News Title:</label>
+        <input type="text" id="news-title" name="news-title" placeholder="Enter the news title" required>
+      </div>
+
+      <div class="form-group">
+        <label for="news-description">News Description:</label>
+        <textarea id="news-description" name="news-description" placeholder="Describe the news or provide relevant information" rows="4" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="news-url">News URL (if available):</label>
+        <input type="url" id="news-url" name="news-url" placeholder="https://example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="news-file" class="file-upload-label">
+          <img src="images/upload-icon.png" alt="Upload Icon" class="upload-icon">
+          <span>Upload Supporting Documents</span>
+        </label>
+        <input type="file" id="news-file" name="news-file" accept=".jpg, .jpeg, .png, .pdf, .docx" style="display: none;">
+      </div>
+      
+      <button type="submit" class="submit-button">Submit for Verification</button>
+    </form>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-main">
+        <div class="footer-logo">
+          <img src="Images/whitelogoicon-removebg-preview.png" alt="AI News Verifier">
+          <p>Empowering users with AI-driven news verification technology</p>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="resources.html">Resources</a></li>
+            <li><a href="verifier.html">AI Verifier</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <p><i class="fas fa-envelope"></i> <a href="mailto:w1887103@my.westminster.ac.uk">w1887103@my.westminster.ac.uk</a></p>
+          <p><i class="fas fa-location-dot"></i> University of Westminster</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 AI News Verifier | Built by Preetham Devulapally</p>
+      </div>
+    </div>
+  </footer>
+
+ <script type="module" src="script.js"></script>
+</body>
+</html>
