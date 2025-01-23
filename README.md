@@ -38,11 +38,11 @@ Run the following command to install the required packages:
 npm install
 This will install the following dependencies:
 
-express: A web application framework.
-body-parser: Middleware for parsing incoming request bodies.
-axios: For making HTTP requests to the OpenAI API.
-cors: Middleware to handle Cross-Origin Resource Sharing.
-path: Node.js module for file path handling (no installation required, as it's built-in).
+1) express: A web application framework.
+2) body-parser: Middleware for parsing incoming request bodies.
+3) axios: For making HTTP requests to the OpenAI API.
+4) cors: Middleware to handle Cross-Origin Resource Sharing.
+5) path: Node.js module for file path handling (no installation required, as it's built-in).
 
 
 Step 3: Start the Server
