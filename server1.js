@@ -1,3 +1,6 @@
+
+// IGNORE THIS FILE IT IS A DUPLICATE OF SERVER.JS
+
 // Import necessary modules
 const express = require('express');
 const bodyParser = require('body-parser');
