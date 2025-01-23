@@ -1,5 +1,5 @@
 
-// IGNORE THIS FILE IT IS A DUPLICATE OF SERVER.JS
+// IGNORE THIS FILE IT IS A DUPLICATE OF SERVER.JS with news api 
 
 // Import necessary modules
 const express = require('express');
