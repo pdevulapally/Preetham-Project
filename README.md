@@ -42,7 +42,8 @@ This will install the following dependencies:
 2) body-parser: Middleware for parsing incoming request bodies.
 3) axios: For making HTTP requests to the OpenAI API.
 4) cors: Middleware to handle Cross-Origin Resource Sharing.
-5) path: Node.js module for file path handling (no installation required, as it's built-in).
+5) path: Node.js module for file path handling (no installation required, as it's built-in).#
+6) environment variable : npm install dotenv
 
 
 Step 3: Start the Server
