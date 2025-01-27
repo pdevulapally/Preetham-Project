@@ -1,27 +1,42 @@
-// Import modules
+// Import necessary modules
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const cors = require('cors');
+const cheerio = require('cheerio');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
 
 app.use(cors());
 app.use(bodyParser.json());
 
-
+// Serve static files from the root directory
 app.use(express.static(__dirname));
 
-// ChatGPT API key
-const CHATGPT_API_KEY = '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';
+// API key for GPT
+const CHATGPT_API_KEY = process.env.CHATGPT_API_KEY;
+
+// Helper function to fetch webpage content
+async function fetchWebpageContent(url) {
+    try {
+        const response = await axios.get(url);
+        const $ = cheerio.load(response.data);
+        return $('body').text(); // Extract text content from the webpage
+    } catch (error) {
+        console.error('Error fetching webpage content:', error.message);
+        throw new Error('Failed to fetch webpage content.');
+    }
+}
 
 // Endpoint to verify news
 app.post('/verify', async (req, res) => {
     const { input } = req.body;
 
-    console.log('Received Input:', input);
+    console.log('Received Input:', input); // Log input
 
     if (!input) {
         console.error('Error: No input provided.');
@@ -29,7 +44,16 @@ app.post('/verify', async (req, res) => {
     }
 
     try {
-  
+        let inputContent = input;
+
+        // Check if the input is a URL
+        if (input.startsWith('http://') || input.startsWith('https://')) {
+            console.log('Input is a URL. Extracting content...');
+            inputContent = await fetchWebpageContent(input);
+            console.log('Extracted Content:', inputContent); // Log extracted content
+        }
+
+        // Using  GPT-4o-mini API to analyze the input content
         console.log('Sending data to GPT API for analysis...');
         const chatGPTResponse = await axios.post(
             'https://api.openai.com/v1/chat/completions',
@@ -42,10 +66,10 @@ app.post('/verify', async (req, res) => {
                     },
                     {
                         role: 'user',
-                        content: `Based on the news given to you, check whether it is correct or not based on it's facts. Return the answer in one word i.e. Real or Fake . ${input}`
+                        content: `Based on the news given to you, check whether it is correct or not based on its facts. Return the answer in one word i.e. Real or Fake. ${inputContent}`
                     }
                 ],
-                max_tokens: 500,
+                max_tokens: 1000,
                 temperature: 1
             },
             {
@@ -57,17 +81,17 @@ app.post('/verify', async (req, res) => {
         );
 
         const analysisResult = chatGPTResponse.data.choices[0]?.message?.content || 'No analysis result available';
-        console.log('GPT Analysis Result:', analysisResult);
+        console.log('GPT Analysis Result:', analysisResult); // Log GPT response
 
-        // Sends back the result to the frontend
+        // Sends back the result
         res.json({
             input,
+            extractedContent: input.startsWith('http') ? inputContent : undefined,
             analysis: analysisResult,
             result: analysisResult
         });
-
     } catch (error) {
-        console.error('Error during verification:', error);
+        console.error('Error during verification:', error); // Log the entire error object
         res.status(500).json({ error: 'An error occurred during verification.' });
     }
 });
@@ -105,10 +129,6 @@ app.get('/history', (req, res) => {
     res.sendFile(path.join(__dirname, 'history.html'));
 });
 
-app.get('/contact', (req, res) => {
-    res.sendFile(path.join(__dirname, 'contact.html'));
-});
-
 // Error handling for undefined routes
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, '404.html'));
@@ -117,10 +137,11 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('404 Not Found');
+    res.status(500).send('Something broke!');
 });
 
 
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
