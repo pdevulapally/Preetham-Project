@@ -8,8 +8,23 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
+// Environment variables
+const {
+    PORT = 5000,
+    NODE_ENV = 'development',
+    CHATGPT_API_KEY,
+    OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions',
+    OPENAI_MODEL = 'gpt-4o-mini',
+    MAX_TOKENS = 1000,
+    TEMPERATURE = 1
+} = process.env;
+
+// Validate required environment variables
+if (!CHATGPT_API_KEY) {
+    console.error('Error: CHATGPT_API_KEY is required');
+    process.exit(1);
+}
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -17,15 +32,12 @@ app.use(bodyParser.json());
 // Serve static files from the root directory
 app.use(express.static(__dirname));
 
-// API key for GPT
-const CHATGPT_API_KEY = process.env.CHATGPT_API_KEY;
-
 // Helper function to fetch webpage content
 async function fetchWebpageContent(url) {
     try {
         const response = await axios.get(url);
         const $ = cheerio.load(response.data);
-        return $('body').text(); // Extract text content from the webpage
+        return $('body').text();
     } catch (error) {
         console.error('Error fetching webpage content:', error.message);
         throw new Error('Failed to fetch webpage content.');
@@ -36,7 +48,7 @@ async function fetchWebpageContent(url) {
 app.post('/verify', async (req, res) => {
     const { input } = req.body;
 
-    console.log('Received Input:', input); // Log input
+    console.log('Received Input:', input);
 
     if (!input) {
         console.error('Error: No input provided.');
@@ -46,19 +58,17 @@ app.post('/verify', async (req, res) => {
     try {
         let inputContent = input;
 
-        // Check if the input is a URL
         if (input.startsWith('http://') || input.startsWith('https://')) {
             console.log('Input is a URL. Extracting content...');
             inputContent = await fetchWebpageContent(input);
-            console.log('Extracted Content:', inputContent); // Log extracted content
+            console.log('Extracted Content:', inputContent);
         }
 
-        // Using  GPT-4o-mini API to analyze the input content
         console.log('Sending data to GPT API for analysis...');
         const chatGPTResponse = await axios.post(
-            'https://api.openai.com/v1/chat/completions',
+            OPENAI_API_URL,
             {
-                model: 'gpt-4o-mini',
+                model: OPENAI_MODEL,
                 messages: [
                     {
                         role: 'system',
@@ -69,8 +79,8 @@ app.post('/verify', async (req, res) => {
                         content: `Based on the news given to you, check whether it is correct or not based on its facts. Return the answer in one word i.e. Real or Fake. ${inputContent}`
                     }
                 ],
-                max_tokens: 1000,
-                temperature: 1
+                max_tokens: parseInt(MAX_TOKENS),
+                temperature: parseFloat(TEMPERATURE)
             },
             {
                 headers: {
@@ -81,9 +91,8 @@ app.post('/verify', async (req, res) => {
         );
 
         const analysisResult = chatGPTResponse.data.choices[0]?.message?.content || 'No analysis result available';
-        console.log('GPT Analysis Result:', analysisResult); // Log GPT response
+        console.log('GPT Analysis Result:', analysisResult);
 
-        // Sends back the result
         res.json({
             input,
             extractedContent: input.startsWith('http') ? inputContent : undefined,
@@ -91,8 +100,11 @@ app.post('/verify', async (req, res) => {
             result: analysisResult
         });
     } catch (error) {
-        console.error('Error during verification:', error); // Log the entire error object
-        res.status(500).json({ error: 'An error occurred during verification.' });
+        console.error('Error during verification:', error);
+        const errorMessage = NODE_ENV === 'development' 
+            ? error.message 
+            : 'An error occurred during verification.';
+        res.status(500).json({ error: errorMessage });
     }
 });
 
@@ -137,11 +149,13 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something broke!');
+    const errorMessage = NODE_ENV === 'development' 
+        ? err.stack 
+        : 'Something broke!';
+    res.status(500).send(errorMessage);
 });
-
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running in ${NODE_ENV} mode on http://localhost:${PORT}`);
 });
