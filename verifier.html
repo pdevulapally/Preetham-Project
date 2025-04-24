@@ -9,9 +9,12 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
   <script type="module">
+    // Import Firebase functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
-
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+  
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDzSwRJM27Iyay8RYjXDbSeb_CEI7OwdGc",
       authDomain: "ai-detection-tool.firebaseapp.com",
@@ -21,10 +24,19 @@
       appId: "1:70262219338:web:4cd7ca550d40f3709ffcb3",
       measurementId: "G-SZMLKB4WQG"
     };
-
+  
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-
+    const db = getFirestore(app);
+  
+    // Make auth and db available globally
+    window.auth = auth;
+    window.db = db;
+    window.addDoc = addDoc;
+    window.collection = collection;
+    window.serverTimestamp = serverTimestamp;
+    window.onAuthStateChanged = onAuthStateChanged;
+  
     document.addEventListener("DOMContentLoaded", () => {
       // Check Authentication State
       onAuthStateChanged(auth, (user) => {
@@ -90,6 +102,11 @@
     </div>
     <ul class="menu">
       <li>
+        <a href="verifier.html" class="menu-item">
+          <img src="Sidebar-icons/chat-icon.png" alt="Chat Icon" class="menu-icon"> New Chat
+        </a>
+      </li>
+      <li>
         <a href="history.html" class="menu-item">
           <img src="Sidebar-icons/history.png" alt="History Icon" class="menu-icon"> History
         </a>
@@ -123,9 +140,6 @@
       <button class="report-button" onclick="window.location.href='report.html'">
         <i class="fas fa-flag"></i> Report
       </button>
-      <button class="share-button" id="share-now">
-        <i class="fas fa-share-alt"></i> Share Now
-      </button>
     </div>
 
     <section class="verifier-section">
@@ -134,24 +148,32 @@
         Enter a URL or paste the content below, and click "Verify Now" to check the credibility of the news.
       </p>
       <div class="verifier-form">
-        <input type="text" id="news-input" placeholder="Paste a news URL or enter a query..." />
-        <button class="ai-button" id="verify-button">
+        <label for="news-input" class="visually-hidden">News URL or Query</label>
+        <input type="text"  id="news-input" placeholder="Paste a news URL or enter a query..." aria-label="Enter news URL or query to verify" aria-required="true"/>
+        <button class="ai-button" id="verify-button" aria-label="Verify news content">
           <span class="text">Verify Now</span>
-          <span class="emoji">
+          <span class="emoji" aria-hidden="true">
             <img src="Images/stars (1).png" alt="Star Icon" class="star-image">
           </span>
         </button>
       </div>
-      <div id="verification-result" class="result-container">
-        <img id="loading-gif" class="loading-gif" src="Images/resultstaranimation-unscreen.gif" alt="Loading..." />
-        <div id="results-content" class="results-content" style="display: none;">
-          <!-- Results will appear here -->
+      <div 
+        id="verification-result" class="result-container" role="region" aria-live="polite" aria-label="Verification results">
+        <div class="loading-container" id="loading-container" style="display: none;">
+          <div class="loading-content">
+            <img id="loading-gif" class="loading-gif" 
+             src="Images/resultstaranimation-unscreen.gif" alt="Loading verification results..." aria-hidden="true"/>
+            <p class="loading-text" aria-live="polite">Analyzing content...</p>
+          </div>
+        </div>
+        <div 
+          id="results-content"  class="results-content" style="display: none;"role="status"aria-live="polite">
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Tutorial Overlay -->
+
 <div id="tutorial-overlay" class="tutorial-overlay">
   <div class="tutorial-container">
     <div class="tutorial-header">
@@ -192,7 +214,7 @@
 
       let currentStep = 0;
 
-      // Check if the tutorial has already been skipped
+      // Checks if the tutorial has already been skipped
       function checkTutorialStatus() {
         const tutorialSkipped = localStorage.getItem("tutorialSkipped");
         if (tutorialSkipped === "true") {
@@ -200,7 +222,7 @@
         }
       }
 
-      // Mark the tutorial as skipped
+      // Marks the tutorial as skipped
       function markTutorialSkipped() {
         localStorage.setItem("tutorialSkipped", "true");
         overlay.style.display = "none";
@@ -223,7 +245,7 @@
           currentStep++;
           showStep(currentStep);
         } else {
-          markTutorialSkipped(); // Mark tutorial as skipped when finished
+          markTutorialSkipped(); // Marks tutorial as skipped when finished
         }
       });
 
@@ -245,59 +267,214 @@
   </script>
 
   <script> 
-    function showLoadingAnimation() {
-      const loadingGif = document.getElementById("loading-gif");
-      const resultsContent = document.getElementById("results-content");
-
-      // Show the GIF during loading
-      loadingGif.style.display = "block";
-      resultsContent.style.display = "none"; // Hide results during loading
-
-      // Simulate result generation delay (replace with your actual result logic)
-      setTimeout(() => {
-        // Hide GIF and show results
-        loadingGif.style.display = "none";
-        resultsContent.style.display = "block";
-        resultsContent.innerHTML = "<p>Your verified results will appear here!</p>"; // Replace with actual results
-      }, 5000); // Simulate a 5-second delay
-    }
-
-    // Function to show loading animation and send request
-    function verifyNews() {
+    async function verifyNews() {
       const newsInput = document.getElementById("news-input").value;
-      const loadingGif = document.getElementById("loading-gif");
+      const loadingContainer = document.getElementById("loading-container");
       const resultsContent = document.getElementById("results-content");
 
+      // Input validation
       if (!newsInput) {
         alert("Please enter a news URL or text.");
         return;
       }
 
-      // Show loading animation
-      loadingGif.style.display = "block";
+      // Check for code-like syntax and invalid inputs
+      const codePattern = /[{}<>[\]()$#;]|function|var |let |const |if |else |for |while |return |class /i;
+      const numbersOnlyPattern = /^\d+$/;
+      
+      if (codePattern.test(newsInput) || numbersOnlyPattern.test(newsInput)) {
+        resultsContent.style.display = "block";
+        resultsContent.innerHTML = `
+          <div class="result-card">
+            <h2 class="result-title" id="result-title">Invalid Input</h2>
+            <div class="result-section verdict-section">
+              <h3 class="section-title">Verdict</h3>
+              <p class="verdict-text likely-fake">
+                <span class="verdict-icon" aria-hidden="true">✗</span>
+                Unable to Verify
+              </p>
+            </div>
+            <div class="result-section confidence-section">
+              <h3 class="section-title">Confidence Level</h3>
+              <div class="confidence-meter">
+                <div class="confidence-bar" style="width: 0%"></div>
+                <span class="confidence-value">Not Applicable</span>
+              </div>
+            </div>
+            <div class="explanation-text">
+              <p class="analysis-paragraph">The input appears to contain code or programming syntax. Please enter actual news content or a valid URL for verification. We cannot verify code snippets, programming syntax, or numbers alone.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      loadingContainer.style.display = "flex";
       resultsContent.style.display = "none";
 
-    
-fetch('/verify', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ input: newsInput }), // Ensure "input" matches backend expectation
-  })
-      .then(response => response.json())
-      .then(data => {
-        // Hide loading animation and show results
-        loadingGif.style.display = "none";
+      try {
+        const response = await fetch('/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: newsInput }),
+        });
+
+        const data = await response.json();
+
+        loadingContainer.style.display = "none";
         resultsContent.style.display = "block";
-        resultsContent.innerHTML = `<p>Result: ${data.result || 'No result available'}</p>`; // Use 'result' key
-      })
-      .catch(error => {
+
+        if (data.error) {
+          resultsContent.innerHTML = `<p>${data.error}</p>`;
+          return;
+        }
+
+        const { verdict, confidence, latestUpdate, sourcesChecked, explanation } = data.result;
+
+        // Get current user first
+        const user = auth.currentUser;
+        
+        // Validate data before saving to Firebase
+        const validatedData = {
+          userId: user ? user.uid : null,
+          query: newsInput,
+          verdict: verdict || 'Unknown',
+          confidence: confidence || 'N/A',
+          explanation: explanation || '',
+          timestamp: serverTimestamp(),
+          sourcesChecked: sourcesChecked || [],
+          latestUpdate: latestUpdate || new Date().toISOString().split('T')[0],
+          folder: 'default',
+          starred: false
+        };
+
+        // Save to history only if user is logged in
+        if (user) {
+          try {
+            const historyRef = await addDoc(collection(db, 'history'), validatedData);
+            console.log("History saved with ID: ", historyRef.id);
+            
+            // Save to chatHistory
+            await addDoc(collection(db, 'chatHistory'), validatedData);
+          } catch (error) {
+            console.error("Error saving to history:", error);
+          }
+        }
+
+        // Continue with displaying results...
+        resultsContent.innerHTML = `
+          <div class="result-card">
+            <h2 class="result-title" id="result-title">Verification Results</h2>
+            
+            <div class="result-section verdict-section">
+              <h3 class="section-title">Verdict</h3>
+              <p class="verdict-text ${verdict.toLowerCase()}">
+                <span class="verdict-icon" aria-hidden="true">${verdict.toLowerCase() === 'true' || verdict.toLowerCase() === 'likely real' ? '✓' : '✗'}</span>
+                ${verdict || 'Unknown'}
+              </p>
+            </div>
+
+            <div class="result-section confidence-section">
+              <h3 class="section-title">Confidence Level</h3>
+              <div class="confidence-meter">
+                <div class="confidence-bar" style="width: ${confidence ? confidence.replace('%', '') : '0'}%"></div>
+                <span class="confidence-value">${confidence || 'N/A'}</span>
+              </div>
+            </div>
+
+            <div class="result-section sources-section">
+              <h3 class="section-title">Sources Checked</h3>
+              <ul class="sources-list" role="list">
+                ${sourcesChecked?.length
+                  ? sourcesChecked.map(src => {
+                      // Extract the full URL without parentheses
+                      const url = src.trim();
+                      return `
+                        <li class="source-item">
+                          <a href="${url}" target="_blank" rel="noopener noreferrer">
+                            ${url}
+                            <span class="external-link-icon" aria-hidden="true">↗</span>
+                          </a>
+                        </li>
+                      `;
+                    }).join('')
+                  : '<li class="no-sources">No sources available</li>'}
+              </ul>
+            </div>
+
+            <div class="result-section explanation-section">
+              <h3 class="section-title">Detailed Analysis</h3>
+              <div class="explanation-text">
+                ${explanation ? `
+                  <div class="explanation-paragraph">
+                    ${explanation.split('\n\n')
+                      .filter(paragraph => 
+                        !paragraph.includes('Verdict:') && 
+                        !paragraph.includes('Confidence:') && 
+                        !paragraph.includes('Sources checked:') &&
+                        !paragraph.includes('Sources Checked:') &&
+                        !paragraph.match(/^\s*-\s*\([^)]+\)\s*-\s*\([^)]+\)/) && // Remove the source list at the bottom
+                        !paragraph.match(/^-\s*\([^)]+\)/) // Remove individual source entries
+                      )
+                      .map(paragraph => {
+                        paragraph = paragraph.replace(/\*\*(.*?)\*\*/g, '$1');
+                        
+                        const urlRegex = /(https?:\/\/[^\s)]+)/g;
+                        const paragraphWithLinks = paragraph.replace(urlRegex, url => {
+                          const urlObj = new URL(url);
+                          const domain = urlObj.hostname.replace('www.', '');
+                          return `<a href="${url}" class="source-link" target="_blank" rel="noopener noreferrer">${domain}</a>`;
+                        });
+                        
+                        if (paragraph.includes('Source:')) {
+                          return `
+                            <div class="source-reference">
+                              <div class="source-icon"><i class="fas fa-link"></i></div>
+                              <div class="source-content">
+                                ${paragraphWithLinks}
+                              </div>
+                            </div>
+                          `;
+                        }
+                        return `<p class="analysis-paragraph">${paragraphWithLinks}</p>`;
+                      }).join('')}
+                  </div>
+                  ${explanation.includes('Source:') ? `
+                    <div class="sources-citations">
+                      <h4><i class="fas fa-external-link-alt"></i> Referenced Sources</h4>
+                      ${explanation.split('\n')
+                        .filter(line => line.includes('Source:'))
+                        .map(source => {
+                          const urlMatch = source.match(/(https?:\/\/[^\s)]+)/);
+                          const sourceUrl = urlMatch ? urlMatch[0] : '#';
+                          const urlObj = new URL(sourceUrl);
+                          const domain = urlObj.hostname.replace('www.', '');
+                          return `
+                            <div class="source-citation">
+                              <i class="fas fa-external-link-alt"></i>
+                              <a href="${sourceUrl}" class="source-link" target="_blank" rel="noopener noreferrer">
+                                ${domain}
+                              </a>
+                            </div>
+                          `;
+                        }).join('')}
+                    </div>
+                  ` : ''}
+                ` : 'No detailed analysis available'}
+              </div>
+            </div>
+
+            <div class="result-section update-section">
+              <h3 class="section-title">Last Updated</h3>
+              <p class="update-text">${latestUpdate || 'No update available'}</p>
+            </div>
+          </div>
+        `;
+      } catch (error) {
         console.error('Error:', error);
-        loadingGif.style.display = "none";
-        resultsContent.style.display = "block";
-        resultsContent.innerHTML = "<p>Error verifying news. Please try again.</p>";
-      });
+        loadingContainer.style.display = "none";
+        resultsContent.innerHTML = `<p>Error verifying news. Please try again.</p>`;
+      }
     }
 
     // Attach event listener to the Verify Now button

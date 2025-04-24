@@ -1,0 +1,20 @@
+# Node.js dependencies
+node_modules/
+
+# Environment variable files
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+backend/firebase-adminsdk.json
+
+
+# IDE-specific files
+.vscode/
+.idea/
+*.swp
+
+

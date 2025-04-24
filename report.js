@@ -1,6 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -16,6 +17,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // Add this function to your existing report.js
 function closeModal() {
@@ -41,6 +43,13 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Check if user is authenticated
+        const user = auth.currentUser;
+        if (!user) {
+            alert("Please sign in to submit a report");
+            return;
+        }
+
         try {
             // Show loading state
             const submitButton = form.querySelector('button[type="submit"]');
@@ -48,17 +57,18 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = true;
             submitButton.innerHTML = 'Submitting...';
 
-            // Collect form data
+            // Collect form data matching the security rules requirements
             const formData = {
-                newsUrl: form.newsUrl.value,
-                reportType: form.reportType.value,
-                description: form.description.value,
-                evidence: form.evidence.value || '',
-                anonymous: form.anonymous.checked,
-                status: 'pending',
-                createdAt: serverTimestamp(),
-                reportedAt: new Date().toISOString(),
-                ipAddress: 'anonymous', // For privacy
+                type: form.reportType.value,
+                content: {
+                    newsUrl: form.newsUrl.value,
+                    description: form.description.value,
+                    evidence: form.evidence.value || '',
+                    anonymous: form.anonymous.checked
+                },
+                reportedBy: user.uid,
+                timestamp: serverTimestamp(),
+                status: 'pending'
             };
 
             // Add report to Firestore
@@ -93,4 +103,4 @@ urlInput.addEventListener('input', function() {
     } else {
         urlInput.setCustomValidity('');
     }
-}); 
+});

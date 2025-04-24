@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat History - AI News Verifier</title>
+  <link rel="stylesheet" href="history.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <script type="module">
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      query, 
+      where, 
+      orderBy, 
+      getDocs, 
+      deleteDoc,
+      doc,
+      writeBatch,
+      addDoc,
+      updateDoc,
+      setDoc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+
+    // Firebase config - don't change this
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzSwRJM27Iyay8RYjXDbSeb_CEI7OwdGc",
+      authDomain: "ai-detection-tool.firebaseapp.com",
+      projectId: "ai-detection-tool",
+      storageBucket: "ai-detection-tool.appspot.com",
+      messagingSenderId: "70262219338",
+      appId: "1:70262219338:web:4cd7ca550d40f3709ffcb3",
+      measurementId: "G-SZMLKB4WQG"
+    };
+
+    // Initialize Firebase stuff
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    // Global variables for folders and chats
+    let currentFolder = "All"; // Default folder view
+    let userFolders = ["All"]; // Default folders list
+    let allChatHistory = [];
+
+    // Function to get or create user folders
+    async function getUserFolders(userId) {
+      try {
+        const userFoldersRef = doc(db, 'userFolders', userId);
+        const userFoldersDoc = await getDoc(userFoldersRef);
+        
+        if (userFoldersDoc.exists()) {
+          // If user already has folders, get them
+          return userFoldersDoc.data().folders || ["All"];
+        } else {
+          // If user doesn't have folders yet, create default
+          const defaultFolders = ["All", "Verified", "Fake News", "Uncertain"];
+          await setDoc(userFoldersRef, { folders: defaultFolders });
+          return defaultFolders;
+        }
+      } catch (error) {
+        console.error("Error getting user folders:", error);
+        return ["All"]; // Fallback to at least having the All folder
+      }
+    }
+
+    // Function to add a new folder
+    async function addNewFolder(folderName) {
+      try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No user logged in");
+        
+        if (userFolders.includes(folderName)) {
+          alert("This folder already exists!");
+          return;
+        }
+        
+        // Add new folder to the list
+        const updatedFolders = [...userFolders, folderName];
+        
+        // Update in Firebase
+        const userFoldersRef = doc(db, 'userFolders', user.uid);
+        await updateDoc(userFoldersRef, { folders: updatedFolders });
+        
+        // Update local state
+        userFolders = updatedFolders;
+        
+        // Refresh the UI
+        updateFoldersUI();
+        
+        return true;
+      } catch (error) {
+        console.error("Error adding new folder:", error);
+        alert("Failed to add folder. Please try again.");
+        return false;
+      }
+    }
+
+    // Function to delete a folder
+    async function deleteFolder(folderName) {
+      try {
+        // Don't allow deletion of the "All" folder
+        if (folderName === "All") {
+          alert("Cannot delete the 'All' folder!");
+          return;
+        }
+        
+        const user = auth.currentUser;
+        if (!user) throw new Error("No user logged in");
+        
+        if (!confirm(`Are you sure you want to delete the folder "${folderName}"? Items will be moved to "All".`)) {
+          return;
+        }
+        
+        // Move all chats from this folder to "All"
+        await moveChatsFromFolder(folderName, "All");
+        
+        // Remove folder from the list
+        const updatedFolders = userFolders.filter(f => f !== folderName);
+        
+        // Update in Firebase
+        const userFoldersRef = doc(db, 'userFolders', user.uid);
+        await updateDoc(userFoldersRef, { folders: updatedFolders });
+        
+        // Update local state
+        userFolders = updatedFolders;
+        currentFolder = "All"; // Switch to All folder
+        
+        // Refresh everything
+        updateFoldersUI();
+        loadChatHistory();
+        
+        return true;
+      } catch (error) {
+        console.error("Error deleting folder:", error);
+        alert("Failed to delete folder. Please try again.");
+        return false;
+      }
+    }
+
+    // Function to move chats from one folder to another
+    async function moveChatsFromFolder(fromFolder, toFolder) {
+      try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("No user logged in");
+        
+        // Get all chats in the source folder
+        const chatsToMove = allChatHistory.filter(chat => 
+          chat.folder === fromFolder || 
+          (fromFolder === "All" && !chat.folder)  // Handle legacy chats with no folder
+        );
+        
+        // Update each chat's folder
+        const batch = writeBatch(db);
+        chatsToMove.forEach(chat => {
+          const chatRef = doc(db, 'chatHistory', chat.id);
+          batch.update(chatRef, { folder: toFolder });
+        });
+        
+        await batch.commit();
+        
+        // Update local data
+        allChatHistory = allChatHistory.map(chat => {
+          if (chat.folder === fromFolder || (fromFolder === "All" && !chat.folder)) {
+            return {...chat, folder: toFolder};
+          }
+          return chat;
+        });
+        
+        return true;
+      } catch (error) {
+        console.error("Error moving chats between folders:", error);
+        return false;
+      }
+    }
+
+    // Function to move a single chat to a folder
+    async function moveChatToFolder(chatId, targetFolder) {
+      try {
+        const chatRef = doc(db, 'chatHistory', chatId);
+        await updateDoc(chatRef, { folder: targetFolder });
+        
+        // Update local data too
+        allChatHistory = allChatHistory.map(chat => {
+          if (chat.id === chatId) {
+            return {...chat, folder: targetFolder};
+          }
+          return chat;
+        });
+        
+        // Refresh the UI if we need to
+        if (currentFolder !== "All" && currentFolder !== targetFolder) {
+          displayChatsByFolder(currentFolder);
+        } else {
+          displayChatsByFolder(currentFolder);
+        }
+        
+        return true;
+      } catch (error) {
+        console.error("Error moving chat to folder:", error);
+        alert("Failed to move chat to folder. Please try again.");
+        return false;
+      }
+    }
+
+    // Function to update the folders UI
+    function updateFoldersUI() {
+      const foldersList = document.getElementById('folders-list');
+      if (!foldersList) return;
+      
+      // Generate HTML for folders
+      let foldersHTML = '';
+      userFolders.forEach(folder => {
+        const isActive = folder === currentFolder ? 'active' : '';
+        const isAllFolder = folder === "All" ? 'all-folder' : '';
+        const deleteBtn = folder === "All" ? '' : 
+          `<button class="delete-folder-btn" onclick="event.stopPropagation(); deleteFolder('${folder}')">
+            <i class="fas fa-times"></i>
+          </button>`;
+        
+        foldersHTML += `
+          <li class="folder-item ${isActive} ${isAllFolder}" onclick="switchFolder('${folder}')">
+            <span class="folder-icon"><i class="fas fa-folder"></i></span>
+            <span class="folder-name">${folder}</span>
+            ${deleteBtn}
+          </li>
+        `;
+      });
+      
+      // Add the "Add new folder" option
+      foldersHTML += `
+        <li class="add-folder-item" onclick="showAddFolderDialog()">
+          <span class="folder-icon"><i class="fas fa-plus"></i></span>
+          <span class="folder-name">Add New Folder</span>
+        </li>
+      `;
+      
+      foldersList.innerHTML = foldersHTML;
+    }
+
+    // Function to show the add folder dialog
+    window.showAddFolderDialog = function() {
+      const folderName = prompt("Enter a name for your new folder:");
+      if (folderName && folderName.trim() !== "") {
+        addNewFolder(folderName.trim());
+      }
+    };
+
+    // Function to switch between folders
+    window.switchFolder = function(folderName) {
+      currentFolder = folderName;
+      updateFoldersUI();
+      displayChatsByFolder(folderName);
+    };
+
+    // Function to display chats in a specified folder
+    function displayChatsByFolder(folderName) {
+      const historyContainer = document.getElementById('chat-items-container');
+      
+      // Filter chats based on folder
+      let chatsToDisplay;
+      if (folderName === "All") {
+        chatsToDisplay = allChatHistory;
+      } else {
+        chatsToDisplay = allChatHistory.filter(chat => chat.folder === folderName);
+      }
+      
+      // Update UI
+      if (chatsToDisplay.length === 0) {
+        historyContainer.innerHTML = `<p class="no-history">No chats found in this folder.</p>`;
+        return;
+      }
+      
+      const historyHTML = [];
+      chatsToDisplay.forEach((chat) => {
+        const date = chat.timestamp ? new Date(chat.timestamp.toDate()).toLocaleString() : 'Date not available';
+        
+        // Generate folder dropdown options
+        let folderOptions = '';
+        userFolders.forEach(folder => {
+          if (folder !== "All") { // Skip "All" as it's not a real folder
+            const isSelected = folder === chat.folder ? 'selected' : '';
+            folderOptions += `<option value="${folder}" ${isSelected}>${folder}</option>`;
+          }
+        });
+        
+        historyHTML.push(`
+          <div class="chat-item" data-chat-id="${chat.id}">
+            <div class="chat-header">
+              <span class="chat-date">${date}</span>
+              <div class="chat-actions">
+                <div class="folder-dropdown">
+                  <select class="move-to-folder" onchange="moveChatToFolder('${chat.id}', this.value)">
+                    <option value="" disabled>Move to...</option>
+                    ${folderOptions}
+                  </select>
+                </div>
+                <button class="delete-chat" onclick="deleteChat('${chat.id}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="chat-content">
+              <p class="chat-query"><strong>Query:</strong> ${chat.query || 'No query available'}</p>
+              <p class="chat-result ${chat.result?.toLowerCase()}">
+                <strong>Result:</strong> ${chat.result || 'No result available'}
+                ${chat.confidence ? `(${chat.confidence}% confidence)` : ''}
+              </p>
+              ${chat.explanation ? `<p class="chat-explanation"><strong>Explanation:</strong> ${chat.explanation}</p>` : ''}
+              ${chat.folder ? `<span class="chat-folder-tag">${chat.folder}</span>` : ''}
+            </div>
+          </div>
+        `);
+      });
+      
+      historyContainer.innerHTML = historyHTML.join('');
+    }
+
+    // Main function to load chat history
+    async function loadChatHistory() {
+      const historyContainer = document.getElementById('history-container');
+      const loadingElement = document.createElement('div');
+      loadingElement.className = 'loading';
+      loadingElement.textContent = 'Loading chat history...';
+      historyContainer.appendChild(loadingElement);
+
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.log('No authenticated user found');
+          historyContainer.innerHTML = '<p class="error-message">Please log in to view your chat history.</p>';
+          return;
+        }
+
+        // First, get user folders
+        userFolders = await getUserFolders(user.uid);
+        
+        // Then get all chat history
+        const chatHistoryRef = collection(db, 'chatHistory');
+        const q = query(chatHistoryRef, 
+          where('userId', '==', user.uid),
+          orderBy('timestamp', 'desc')
+        );
+
+        const querySnapshot = await getDocs(q);
+        
+        // Remove loading indicator
+        historyContainer.removeChild(loadingElement);
+        
+        // Prepare the container structure
+        historyContainer.innerHTML = `
+          <div class="history-header">
+            <h2>Your Chat History</h2>
+            <button class="clear-history" onclick="clearAllHistory()">
+              Clear All History
+            </button>
+          </div>
+          
+          <div class="history-body">
+            <div class="folders-sidebar">
+              <h3>Folders</h3>
+              <ul class="folders-list" id="folders-list">
+                <!-- Folders will be inserted here -->
+              </ul>
+            </div>
+            
+            <div class="chat-items-container" id="chat-items-container">
+              <!-- Chat items will be inserted here -->
+            </div>
+          </div>
+        `;
+        
+        // Update folders UI
+        updateFoldersUI();
+
+        if (querySnapshot.empty) {
+          document.getElementById('chat-items-container').innerHTML = '<p class="no-history">No chat history found. Try verifying some news first!</p>';
+          return;
+        }
+
+        // Process all chats and store them
+        allChatHistory = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          // Add folder if it doesn't exist (for backward compatibility)
+          if (!data.folder) {
+            // For older chats, add a folder based on result
+            let suggestedFolder = "All";
+            if (data.result) {
+              if (data.result.toLowerCase().includes("true") || data.result.toLowerCase().includes("verified")) {
+                suggestedFolder = "Verified";
+              } else if (data.result.toLowerCase().includes("false") || data.result.toLowerCase().includes("fake")) {
+                suggestedFolder = "Fake News";
+              } else {
+                suggestedFolder = "Uncertain";
+              }
+            }
+            
+            // Update the doc with a folder
+            updateDoc(doc.ref, { folder: suggestedFolder });
+            data.folder = suggestedFolder;
+          }
+          
+          allChatHistory.push({
+            id: doc.id,
+            ...data
+          });
+        });
+        
+        // Display chats in current folder
+        displayChatsByFolder(currentFolder);
+        
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+        historyContainer.innerHTML = `
+          <p class="error-message">
+            Error loading chat history: ${error.message}
+          </p>
+        `;
+      }
+    }
+
+    // Listen for auth state changes
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadChatHistory();
+        updateSidebar(user);
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    function updateSidebar(user) {
+      const userAvatar = document.querySelector(".user-avatar");
+      const userName = document.querySelector(".user-profile h4");
+      const userRole = document.querySelector(".user-profile p");
+
+      if (user) {
+        userName.textContent = user.displayName || "User";
+        userRole.textContent = user.email || "Email not available";
+
+        if (user.photoURL) {
+          userAvatar.src = user.photoURL;
+          userAvatar.alt = `${user.displayName || "User"}'s profile photo`;
+        } else {
+          userAvatar.src = "Images/default-avatar.png";
+          userAvatar.alt = "Default profile photo";
+        }
+      }
+    }
+
+    // Make delete functions available globally
+    window.deleteChat = async function(chatId) {
+      if (!confirm("Are you sure you want to delete this chat?")) {
+        return;
+      }
+
+      try {
+        const docRef = doc(db, 'chatHistory', chatId);
+        await deleteDoc(docRef);
+        
+        // Also remove from local array
+        allChatHistory = allChatHistory.filter(chat => chat.id !== chatId);
+        
+        // Update UI
+        displayChatsByFolder(currentFolder);
+      } catch (error) {
+        console.error("Error deleting chat:", error);
+        alert("Error deleting chat. Please try again.");
+      }
+    };
+
+    window.clearAllHistory = async function() {
+      if (!confirm("Are you sure you want to clear all chat history? This action cannot be undone.")) {
+        return;
+      }
+
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error("No user logged in");
+        }
+
+        const chatRef = collection(db, 'chatHistory');
+        const q = query(chatRef, where('userId', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+        
+        const batch = writeBatch(db);
+        querySnapshot.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+        
+        await batch.commit();
+        
+        // Clear local data
+        allChatHistory = [];
+        
+        // Refresh UI
+        displayChatsByFolder(currentFolder);
+      } catch (error) {
+        console.error("Error clearing history:", error);
+        alert("Error clearing history. Please try again.");
+      }
+    };
+
+    // Make function to move chat to folder globally available
+    window.moveChatToFolder = async function(chatId, targetFolder) {
+      await moveChatToFolder(chatId, targetFolder);
+    };
+
+    // Make function to delete folder globally available
+    window.deleteFolder = async function(folderName) {
+      await deleteFolder(folderName);
+    };
+  </script>
+  
+  <style>
+    /* Additional CSS for folder functionality */
+    .history-body {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .folders-sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 15px;
+      height: fit-content;
+    }
+    
+    .folders-sidebar h3 {
+      margin-bottom: 15px;
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+    }
+    
+    .folders-list {
+      list-style: none;
+    }
+    
+    .folder-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .folder-item:hover {
+      background: rgba(55, 179, 175, 0.1);
+    }
+    
+    .folder-item.active {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .folder-icon {
+      margin-right: 10px;
+    }
+    
+    .delete-folder-btn {
+      position: absolute;
+      right: 10px;
+      background: transparent;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    
+    .delete-folder-btn:hover {
+      opacity: 1;
+    }
+    
+    .add-folder-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      cursor: pointer;
+      color: var(--primary-color);
+      border: 1px dashed var(--primary-color);
+      transition: all 0.2s ease;
+    }
+    
+    .add-folder-item:hover {
+      background: rgba(55, 179, 175, 0.1);
+    }
+    
+    .chat-items-container {
+      flex: 1;
+    }
+    
+    .folder-dropdown {
+      margin-right: 10px;
+    }
+    
+    .move-to-folder {
+      background: var(--card-bg);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 5px;
+      font-size: 0.8rem;
+    }
+    
+    .chat-folder-tag {
+      display: inline-block;
+      background: rgba(55, 179, 175, 0.1);
+      color: var(--primary-color);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+    
+    .chat-actions {
+      display: flex;
+      align-items: center;
+    }
+    
+    /* For mobile */
+    @media screen and (max-width: 768px) {
+      .history-body {
+        flex-direction: column;
+      }
+      
+      .folders-sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      
+      .folders-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      
+      .folder-item, .add-folder-item {
+        flex: 1;
+        min-width: 100px;
+        text-align: center;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <a href="Home.html">
+          <img src="Images/AIverifilogo2.png" class="logo-icon" alt="AI News Verifier Logo">
+        </a>
+      </div>
+      <div class="burger sidebar-burger" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <div class="user-profile">
+      <img src="Images/Default_pfp.png" alt="User" class="user-avatar">
+      <h4>User Name</h4>
+      <p>AI News Verifier</p>
+    </div>
+    <ul class="menu">
+      <li>
+        <a href="history.html" class="menu-item active">
+          <img src="Sidebar-icons/history.png" alt="History Icon" class="menu-icon"> History
+        </a>
+      </li>
+      <li>
+        <a href="favorites.html" class="menu-item">
+          <img src="Sidebar-icons/star.png" alt="Favorites Icon" class="menu-icon"> Starred
+        </a>
+      </li>
+      <li>
+        <a href="profile.html" class="menu-item">
+          <img src="Sidebar-icons/profile-user.png" alt="Profile Icon" class="menu-icon"> Profile
+        </a>
+      </li>
+    </ul>
+    <button class="logout-button" onclick="handleLogout()">
+      <img src="Sidebar-icons/logout.png" alt="Logout Icon" class="logout-icon">
+      Logout
+    </button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="burger main-burger" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="history-top-header">
+      <h1>Chat History</h1>
+    </div>
+
+    <div id="history-container" class="history-container">
+      <!-- Chat history will be loaded here -->
+    </div>
+  </main>
+
+  <script>
+    // Toggle sidebar function
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+      document.querySelector('.main-content').classList.toggle('sidebar-active');
+    }
+    
+    // Logout function (add this if not already defined elsewhere)
+    function handleLogout() {
+      // This assumes you've defined firebase auth elsewhere
+      if (confirm("Are you sure you want to log out?")) {
+        firebase.auth().signOut().then(() => {
+          window.location.href = "login.html";
+        }).catch((error) => {
+          console.error("Error logging out:", error);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
