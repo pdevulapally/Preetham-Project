@@ -197,43 +197,98 @@
       const loadingContainer = document.getElementById("loading-container");
       const resultsContent = document.getElementById("results-content");
 
-      // Input validation
-      if (!newsInput) {
-        alert("Please enter a news URL or text.");
-        return;
+      // Enhanced input validation
+      const validationRules = {
+        // Empty or too short input
+        isEmpty: input => !input.trim() || input.trim().length < 2,
+        
+        // Too long input (prevent string repeat attacks)
+        isTooLong: input => input.length > 2000,
+        
+        // Repeated characters (like "a".repeat(1000))
+        hasRepeatedChars: input => {
+          const repeatedPattern = /(.)\1{20,}/;
+          return repeatedPattern.test(input);
+        },
+        
+        // SQL Injection patterns
+        hasSQLInjection: input => {
+          const sqlPatterns = /('|"|;|--|\/\*|\*\/|@@|char|nchar|varchar|nvarchar|alter|begin|cast|create|cursor|declare|delete|drop|end|exec|execute|fetch|insert|kill|open|select|sys|table|update)/i;
+          return sqlPatterns.test(input);
+        },
+        
+        // Code patterns (from previous validation)
+        hasCode: input => {
+          const codePatterns = {
+            keywords: /\b(function|class|var|let|const|if|else|for|while|do|switch|case|break|continue|return|try|catch|throw|new|delete|typeof|instanceof|void|this|super|extends|implements|import|export|default|null|undefined|true|false)\b/i,
+            operators: /[{}<>[\]()$#;]|[+\-*/%]=?|[&|^~]=?|>>|<<|===|!==|\+\+|--|=>|\?|:/,
+            scriptTags: /<[^>]*script|<[^>]*style|<[^>]*link|<[^>]*meta|<[^>]*iframe/i,
+            patterns: /\b(console\.|document\.|window\.|eval|setTimeout|setInterval|Promise|async|await|require|module)\b|\$\(|\b\$.|\balert\(|\.innerHTML|\.appendChild|\.removeChild|\bdebugger\b/i,
+            files: /\.(js|py|php|rb|java|cpp|cs|go|rs|swift|kt|ts|jsx|tsx|html|css|sql)$/i
+          };
+          return Object.values(codePatterns).some(pattern => pattern.test(input));
+        },
+        
+        // Special characters that might be used for injection
+        hasSpecialChars: input => {
+          const specialChars = /[<>{}$^&*()+=\[\]\\\/|]/;
+          return specialChars.test(input);
+        }
+      };
+
+      // Validate input
+      const validationErrors = [];
+      
+      if (validationRules.isEmpty(newsInput)) {
+        validationErrors.push("Input is too short. Please enter meaningful content.");
+      }
+      
+      if (validationRules.isTooLong(newsInput)) {
+        validationErrors.push("Input is too long. Please keep it under 2000 characters.");
+      }
+      
+      if (validationRules.hasRepeatedChars(newsInput)) {
+        validationErrors.push("Invalid input pattern detected (repeated characters).");
+      }
+      
+      if (validationRules.hasSQLInjection(newsInput)) {
+        validationErrors.push("Potentially harmful SQL-like content detected.");
+      }
+      
+      if (validationRules.hasCode(newsInput)) {
+        validationErrors.push("Code-like syntax is not allowed.");
+      }
+      
+      if (validationRules.hasSpecialChars(newsInput)) {
+        validationErrors.push("Input contains invalid special characters.");
       }
 
-      // Check for code-like syntax and invalid inputs
-      const codePattern = /[{}<>[\]()$#;]|function|var |let |const |if |else |for |while |return |class /i;
-      const numbersOnlyPattern = /^\d+$/;
-      
-      if (codePattern.test(newsInput) || numbersOnlyPattern.test(newsInput)) {
+      // If validation fails, show error
+      if (validationErrors.length > 0) {
         resultsContent.style.display = "block";
         resultsContent.innerHTML = `
           <div class="result-card">
-            <h2 class="result-title" id="result-title">Invalid Input</h2>
+            <h2 class="result-title" id="result-title">Input Validation Error</h2>
             <div class="result-section verdict-section">
-              <h3 class="section-title">Verdict</h3>
+              <h3 class="section-title">Input Rejected</h3>
               <p class="verdict-text likely-fake">
-                <span class="verdict-icon" aria-hidden="true">✗</span>
-                Unable to Verify
+                <span class="verdict-icon" aria-hidden="true">⚠️</span>
+                Invalid Input Detected
               </p>
             </div>
-            <div class="result-section confidence-section">
-              <h3 class="section-title">Confidence Level</h3>
-              <div class="confidence-meter">
-                <div class="confidence-bar" style="width: 0%"></div>
-                <span class="confidence-value">Not Applicable</span>
-              </div>
-            </div>
             <div class="explanation-text">
-              <p class="analysis-paragraph">The input appears to contain code or programming syntax. Please enter actual news content or a valid URL for verification. We cannot verify code snippets, programming syntax, or numbers alone.</p>
+              <p class="analysis-paragraph">Your input was rejected for the following reasons:</p>
+              <ul>
+                ${validationErrors.map(error => `<li>${error}</li>`).join('')}
+              </ul>
+              <p>Please enter only legitimate news content or URLs for verification.</p>
             </div>
           </div>
         `;
         return;
       }
 
+      // Continue with the existing code for valid input
       loadingContainer.style.display = "flex";
       resultsContent.style.display = "none";
 
