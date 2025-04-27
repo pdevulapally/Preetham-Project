@@ -521,7 +521,7 @@
   </script>
 </head>
 <body>
-  <!-- Sidebar -->
+ <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="logo">
@@ -541,14 +541,13 @@
       <p>AI News Verifier</p>
     </div>
     <ul class="menu">
-          <li>
+      <li>
         <a href="verifier.html" class="menu-item">
           <img src="Sidebar-icons/chat-icon.png" alt="Chat Icon" class="menu-icon"> New Chat
         </a>
       </li>
-      
       <li>
-        <a href="history.html" class="menu-item active">
+        <a href="history.html" class="menu-item">
           <img src="Sidebar-icons/history.png" alt="History Icon" class="menu-icon"> History
         </a>
       </li>
@@ -577,28 +576,8 @@
     </div>
 
     <div id="history-container" class="history-container">
-      <!-- Chat history will be loaded here -->
+      <!-- Chat history will display here -->
     </div>
   </main>
-
-  <script>
-    // Toggle sidebar function
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('active');
-      document.querySelector('.main-content').classList.toggle('sidebar-active');
-    }
-    
-    // Logout function (add this if not already defined elsewhere)
-    function handleLogout() {
-      // This assumes you've defined firebase auth elsewhere
-      if (confirm("Are you sure you want to log out?")) {
-        firebase.auth().signOut().then(() => {
-          window.location.href = "login.html";
-        }).catch((error) => {
-          console.error("Error logging out:", error);
-        });
-      }
-    }
-  </script>
 </body>
 </html>

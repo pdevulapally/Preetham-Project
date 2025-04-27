@@ -1,4 +1,5 @@
 /* General Reset */
+@import url('https://fonts.cdnfonts.com/css/open-dyslexic');
 * {
     margin: 0;
     padding: 0;
@@ -490,6 +491,82 @@
   .source-content strong {
     color: #00ffcc;
     margin-right: 0.5rem;
+  }
+
+   /* Accessibility Widget Styles */
+   .accessibility-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+  }
+
+  .accessibility-toggle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #2196F3;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 24px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+  }
+
+  .accessibility-toggle:hover {
+    transform: scale(1.1);
+  }
+
+  .accessibility-menu {
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: none;
+    width: 200px;
+  }
+
+  .accessibility-menu.active {
+    display: block;
+  }
+
+  .accessibility-option {
+    margin: 10px 0;
+    display: flex;
+    gap: 10px;
+  }
+
+  .accessibility-option button {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #f5f5f5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .accessibility-option button:hover {
+    background: #e0e0e0;
+  }
+
+  /* Accessibility Classes */
+  .dyslexia-font {
+    font-family: 'Open-Dyslexic', sans-serif !important;
+    line-height: 1.5;
+  }
+
+  .high-contrast {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  .negative-contrast {
+    background-color: black !important;
+    color: white !important;
   }
   
 .source-citation {
@@ -1063,8 +1140,8 @@
       backdrop-filter: blur(4px);
       z-index: -1;
     }
-  
-    /* Prevent body scroll when sidebar is open */
+
+    /* Prevents body scroll when sidebar is open */
     body:has(.sidebar:not(.hidden)) {
       overflow: hidden;
     }

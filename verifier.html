@@ -191,76 +191,6 @@
     </div>
   </div>
 </div>
-
-  <script>
-    // Toggle Sidebar Visibility
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('hidden');
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const steps = document.querySelectorAll(".tutorial-step");
-      const progressSteps = document.querySelectorAll(".progress-step");
-      const nextButton = document.getElementById("next-tutorial");
-      const prevButton = document.getElementById("prev-tutorial");
-      const skipButton = document.getElementById("skip-tutorial");
-      const overlay = document.getElementById("tutorial-overlay");
-
-      let currentStep = 0;
-
-      // Checks if the tutorial has already been skipped
-      function checkTutorialStatus() {
-        const tutorialSkipped = localStorage.getItem("tutorialSkipped");
-        if (tutorialSkipped === "true") {
-          overlay.style.display = "none";
-        }
-      }
-
-      // Marks the tutorial as skipped
-      function markTutorialSkipped() {
-        localStorage.setItem("tutorialSkipped", "true");
-        overlay.style.display = "none";
-      }
-
-      // Function to display the current step
-      function showStep(index) {
-        steps.forEach((step, idx) => {
-          step.classList.toggle("active", idx === index);
-          progressSteps[idx].classList.toggle("active", idx <= index);
-        });
-
-        prevButton.style.display = index === 0 ? "none" : "inline-block";
-        nextButton.textContent = index === steps.length - 1 ? "Finish" : "Next";
-      }
-
-      // Next Button Click
-      nextButton.addEventListener("click", () => {
-        if (currentStep < steps.length - 1) {
-          currentStep++;
-          showStep(currentStep);
-        } else {
-          markTutorialSkipped(); // Marks tutorial as skipped when finished
-        }
-      });
-
-      // Previous Button Click
-      prevButton.addEventListener("click", () => {
-        if (currentStep > 0) {
-          currentStep--;
-          showStep(currentStep);
-        }
-      });
-
-      // Skip Button Click
-      skipButton.addEventListener("click", markTutorialSkipped);
-
-      // Initialize the tutorial
-      showStep(currentStep);
-      checkTutorialStatus(); // Check skip status on page load
-    });
-  </script>
-
   <script> 
     async function verifyNews() {
       const newsInput = document.getElementById("news-input").value;
@@ -475,5 +405,38 @@
     // Attach event listener to the Verify Now button
     document.getElementById("verify-button").addEventListener("click", verifyNews);
   </script>
+
+  <!-- Accessibility Widget -->
+  <div class="accessibility-widget" id="accessibility-widget">
+    <button class="accessibility-toggle" aria-label="Toggle accessibility options">
+      <i class="fas fa-universal-access"></i>
+    </button>
+    <div class="accessibility-menu">
+      <div class="accessibility-option">
+        <button id="font-size-increase" aria-label="Increase font size">
+          <i class="fas fa-text-height"></i> A+
+        </button>
+        <button id="font-size-decrease" aria-label="Decrease font size">
+          <i class="fas fa-text-height"></i> A-
+        </button>
+      </div>
+      <div class="accessibility-option">
+        <button id="toggle-dyslexia-font" aria-label="Toggle dyslexia-friendly font">
+          <i class="fas fa-font"></i> Dyslexia Font
+        </button>
+      </div>
+      <div class="accessibility-option">
+        <button id="toggle-high-contrast" aria-label="Toggle high contrast">
+          <i class="fas fa-adjust"></i> High Contrast
+        </button>
+      </div>
+      <div class="accessibility-option">
+        <button id="toggle-negative-contrast" aria-label="Toggle negative contrast">
+          <i class="fas fa-moon"></i> Negative Contrast
+        </button>
+      </div>
+    </div>
+  </div>
+  <script src="verifier.js"></script>
 </body>
 </html>
