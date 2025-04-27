@@ -519,144 +519,6 @@
       await deleteFolder(folderName);
     };
   </script>
-  
-  <style>
-    /* Additional CSS for folder functionality */
-    .history-body {
-      display: flex;
-      gap: 20px;
-    }
-    
-    .folders-sidebar {
-      width: 220px;
-      background: var(--surface);
-      border-radius: 10px;
-      padding: 15px;
-      height: fit-content;
-    }
-    
-    .folders-sidebar h3 {
-      margin-bottom: 15px;
-      color: var(--text-secondary);
-      font-size: 1.2rem;
-    }
-    
-    .folders-list {
-      list-style: none;
-    }
-    
-    .folder-item {
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 5px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    
-    .folder-item:hover {
-      background: rgba(55, 179, 175, 0.1);
-    }
-    
-    .folder-item.active {
-      background: var(--primary-color);
-      color: white;
-    }
-    
-    .folder-icon {
-      margin-right: 10px;
-    }
-    
-    .delete-folder-btn {
-      position: absolute;
-      right: 10px;
-      background: transparent;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      opacity: 0.5;
-      transition: opacity 0.2s;
-    }
-    
-    .delete-folder-btn:hover {
-      opacity: 1;
-    }
-    
-    .add-folder-item {
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 10px;
-      cursor: pointer;
-      color: var(--primary-color);
-      border: 1px dashed var(--primary-color);
-      transition: all 0.2s ease;
-    }
-    
-    .add-folder-item:hover {
-      background: rgba(55, 179, 175, 0.1);
-    }
-    
-    .chat-items-container {
-      flex: 1;
-    }
-    
-    .folder-dropdown {
-      margin-right: 10px;
-    }
-    
-    .move-to-folder {
-      background: var(--card-bg);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 5px;
-      font-size: 0.8rem;
-    }
-    
-    .chat-folder-tag {
-      display: inline-block;
-      background: rgba(55, 179, 175, 0.1);
-      color: var(--primary-color);
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      margin-top: 10px;
-    }
-    
-    .chat-actions {
-      display: flex;
-      align-items: center;
-    }
-    
-    /* For mobile */
-    @media screen and (max-width: 768px) {
-      .history-body {
-        flex-direction: column;
-      }
-      
-      .folders-sidebar {
-        width: 100%;
-        margin-bottom: 20px;
-      }
-      
-      .folders-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      
-      .folder-item, .add-folder-item {
-        flex: 1;
-        min-width: 100px;
-        text-align: center;
-        justify-content: center;
-      }
-    }
-  </style>
 </head>
 <body>
   <!-- Sidebar -->
@@ -679,14 +541,15 @@
       <p>AI News Verifier</p>
     </div>
     <ul class="menu">
+          <li>
+        <a href="verifier.html" class="menu-item">
+          <img src="Sidebar-icons/chat-icon.png" alt="Chat Icon" class="menu-icon"> New Chat
+        </a>
+      </li>
+      
       <li>
         <a href="history.html" class="menu-item active">
           <img src="Sidebar-icons/history.png" alt="History Icon" class="menu-icon"> History
-        </a>
-      </li>
-      <li>
-        <a href="favorites.html" class="menu-item">
-          <img src="Sidebar-icons/star.png" alt="Favorites Icon" class="menu-icon"> Starred
         </a>
       </li>
       <li>
