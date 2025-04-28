@@ -203,36 +203,34 @@
         isEmpty: input => !input.trim() || input.trim().length < 2,
         
         // Too long input (prevent string repeat attacks)
-        isTooLong: input => input.length > 2000,
+        isTooLong: input => input.length > 5000,
         
         // Repeated characters (like "a".repeat(1000))
         hasRepeatedChars: input => {
-          const repeatedPattern = /(.)\1{20,}/;
+          const repeatedPattern = /(.)\1{50,}/;
           return repeatedPattern.test(input);
         },
         
         // SQL Injection patterns
         hasSQLInjection: input => {
-          const sqlPatterns = /('|"|;|--|\/\*|\*\/|@@|char|nchar|varchar|nvarchar|alter|begin|cast|create|cursor|declare|delete|drop|end|exec|execute|fetch|insert|kill|open|select|sys|table|update)/i;
+          const sqlPatterns = /('|;|--|\/\*|\*\/|@@|exec|execute|insert|sys|drop table|union|select\s+(?=.*from)|update\s+\w+\s+set)/i;
           return sqlPatterns.test(input);
         },
         
-        // Code patterns (from previous validation)
+        // Malicious code patterns
         hasCode: input => {
           const codePatterns = {
-            keywords: /\b(function|class|var|let|const|if|else|for|while|do|switch|case|break|continue|return|try|catch|throw|new|delete|typeof|instanceof|void|this|super|extends|implements|import|export|default|null|undefined|true|false)\b/i,
-            operators: /[{}<>[\]()$#;]|[+\-*/%]=?|[&|^~]=?|>>|<<|===|!==|\+\+|--|=>|\?|:/,
-            scriptTags: /<[^>]*script|<[^>]*style|<[^>]*link|<[^>]*meta|<[^>]*iframe/i,
-            patterns: /\b(console\.|document\.|window\.|eval|setTimeout|setInterval|Promise|async|await|require|module)\b|\$\(|\b\$.|\balert\(|\.innerHTML|\.appendChild|\.removeChild|\bdebugger\b/i,
-            files: /\.(js|py|php|rb|java|cpp|cs|go|rs|swift|kt|ts|jsx|tsx|html|css|sql)$/i
+            scriptTags: /<[^>]*script|<[^>]*iframe/i,
+            dangerousPatterns: /\b(eval|setTimeout|setInterval)\s*\(|\b(console\.|document\.|window\.)/i,
+            filePatterns: /\.(js|php|exe|sh|bat)$/i
           };
           return Object.values(codePatterns).some(pattern => pattern.test(input));
         },
         
-        // Special characters that might be used for injection
+        // Only block dangerous special characters
         hasSpecialChars: input => {
-          const specialChars = /[<>{}$^&*()+=\[\]\\\/|]/;
-          return specialChars.test(input);
+          const dangerousChars = /[<>{}$]/;
+          return dangerousChars.test(input);
         }
       };
 
