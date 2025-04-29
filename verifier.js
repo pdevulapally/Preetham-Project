@@ -11,9 +11,9 @@
     const prevButton = document.getElementById("prev-tutorial");
     const skipButton = document.getElementById("skip-tutorial");
     const overlay = document.getElementById("tutorial-overlay");
-
+  
     let currentStep = 0;
-
+  
     // Checks if the tutorial has already been skipped
     function checkTutorialStatus() {
       const tutorialSkipped = localStorage.getItem("tutorialSkipped");
@@ -21,24 +21,26 @@
         overlay.style.display = "none";
       }
     }
-
+  
     // Marks the tutorial as skipped
     function markTutorialSkipped() {
       localStorage.setItem("tutorialSkipped", "true");
       overlay.style.display = "none";
     }
-
+  
     // Function to display the current step
     function showStep(index) {
       steps.forEach((step, idx) => {
         step.classList.toggle("active", idx === index);
-        progressSteps[idx].classList.toggle("active", idx <= index);
       });
-
+      progressSteps.forEach((step, idx) => {
+        step.classList.toggle("active", idx <= index);
+      });
+  
       prevButton.style.display = index === 0 ? "none" : "inline-block";
       nextButton.textContent = index === steps.length - 1 ? "Finish" : "Next";
     }
-
+  
     // Next Button Click
     nextButton.addEventListener("click", () => {
       if (currentStep < steps.length - 1) {
@@ -48,7 +50,7 @@
         markTutorialSkipped(); // Marks tutorial as skipped when finished
       }
     });
-
+  
     // Previous Button Click
     prevButton.addEventListener("click", () => {
       if (currentStep > 0) {
@@ -56,13 +58,18 @@
         showStep(currentStep);
       }
     });
-
+  
     // Skip Button Click
     skipButton.addEventListener("click", markTutorialSkipped);
-
+  
     // Initialize the tutorial
-    showStep(currentStep);
-    checkTutorialStatus(); // Check skip status on page load
+    if (steps.length > 0) {
+      showStep(currentStep);
+      checkTutorialStatus(); // Check skip status on page load
+    } else {
+      console.warn("No tutorial steps found.");
+      overlay.style.display = "none";
+    }
   });
 
       // Accessibility Widget Functionality
