@@ -13,9 +13,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
-  
+
     // Initialize Firebase
-    const firebaseConfig = {
+const firebaseConfig = {
       apiKey: "AIzaSyDzSwRJM27Iyay8RYjXDbSeb_CEI7OwdGc",
       authDomain: "ai-detection-tool.firebaseapp.com",
       projectId: "ai-detection-tool",
@@ -24,7 +24,7 @@
       appId: "1:70262219338:web:4cd7ca550d40f3709ffcb3",
       measurementId: "G-SZMLKB4WQG"
     };
-  
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -36,7 +36,7 @@
     window.collection = collection;
     window.serverTimestamp = serverTimestamp;
     window.onAuthStateChanged = onAuthStateChanged;
-  
+
     document.addEventListener("DOMContentLoaded", () => {
       // Check Authentication State
       onAuthStateChanged(auth, (user) => {
@@ -176,9 +176,24 @@
       <button class="skip-tutorial" id="skip-tutorial">Skip</button>
     </div>
     <div class="tutorial-content">
-      <p class="tutorial-text">
-        Use the <span class="highlight">Verify News</span> section to check the credibility of news articles by entering a URL or text query.
-      </p>
+      <!-- Step 1 -->
+      <div class="tutorial-step active">
+        <p class="tutorial-text">
+          Use the <span class="highlight">Verify News</span> section to check the credibility of news articles by entering a URL or text query.
+        </p>
+      </div>
+      <!-- Step 2 -->
+      <div class="tutorial-step">
+        <p class="tutorial-text">
+          Click the <span class="highlight">Verify Now</span> button to analyze the content and view the results, including verdict, confidence, and sources.
+        </p>
+      </div>
+      <!-- Step 3 -->
+      <div class="tutorial-step">
+        <p class="tutorial-text">
+          Explore your <span class="highlight">History</span> and <span class="highlight">Profile</span> from the sidebar to review past verifications or manage your account.
+        </p>
+      </div>
       <div class="tutorial-progress">
         <div class="progress-step active"></div>
         <div class="progress-step"></div>
