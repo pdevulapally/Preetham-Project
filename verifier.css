@@ -702,7 +702,7 @@
 .menu-item.active {
   background: rgba(255, 255, 255, 0.1);
   font-weight: 500;
-}
+  }
 
 .menu-item i {
     margin-right: 1rem;
@@ -878,33 +878,28 @@
 
 /* General Overlay */
 .tutorial-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
-  background: #000000d8; /* Dimmed background */
-  color: #ffffff;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: fadeIn 0.5s ease-in-out;
-  overflow: hidden;
 }
 
-/* Main Tutorial Container */
 .tutorial-container {
-  background: #1c1c1e;
-  border-radius: 15px;
+  background: #1a1a1a; /* Matches the dark theme in the screenshot */
+  color: #fff;
   padding: 20px;
-  text-align: center;
+  border-radius: 8px;
+  max-width: 500px;
   width: 90%;
-  max-width: 600px;
-  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Header */
 .tutorial-header {
   display: flex;
   justify-content: space-between;
@@ -913,45 +908,44 @@
 }
 
 .tutorial-header h2 {
-  font-size: 1.8rem;
-  color: #00ffcc;
   margin: 0;
+  font-size: 1.5rem;
+  color: #00e6cc; /* Matches the cyan color in the screenshot */
 }
 
 .skip-tutorial {
-  background: transparent;
-  color: #ff6b6b;
-  border: 1px solid #ff6b6b;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease;
+  font-size: 1rem;
 }
 
 .skip-tutorial:hover {
-  background: #ff6b6b;
-  color: #fff;
+  background: #e63939;
 }
 
-/* Content */
-.tutorial-content {
-  padding: 20px;
+.tutorial-step {
+  display: none; /* Hide all steps by default */
+}
+
+.tutorial-step.active {
+  display: block; /* Show only the active step */
 }
 
 .tutorial-text {
-  font-size: 1.2rem;
-  color: #e0e0e0;
-  line-height: 1.6;
+  font-size: 1.1rem;
+  line-height: 1.5;
   margin-bottom: 20px;
 }
 
-.highlight {
-  color: #00ffcc;
+.tutorial-text .highlight {
   font-weight: bold;
+  color: #00e6cc; /* Matches the cyan color for highlighted text */
 }
 
-/* Progress Indicator */
 .tutorial-progress {
   display: flex;
   justify-content: center;
@@ -960,40 +954,41 @@
 }
 
 .progress-step {
-  width: 15px;
-  height: 15px;
-  background: #444;
+  width: 10px;
+  height: 10px;
+  background: #ccc;
   border-radius: 50%;
-  transition: all 0.3s ease;
 }
 
 .progress-step.active {
-  background: #00ffcc;
+  background: #00e6cc; /* Matches the active dot color in the screenshot */
 }
 
-/* Tutorial Buttons */
+.tutorial-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
 .tutorial-btn {
-  background: #00ffcc;
-  color: #fff;
+  background: #00e6cc; /* Matches the "Next" button color */
+  color: #1a1a1a;
   border: none;
-  border-radius: 8px;
   padding: 10px 20px;
-  font-size: 1rem;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 1rem;
 }
 
 .tutorial-btn:hover {
-  background: linear-gradient(135deg, #007c7c, #00d1f4);
-  transform: translateY(-2px);
+  background: #00b8a3;
 }
 
 .prev-tutorial {
-  background: #444;
+  background: #6c757d;
 }
 
 .prev-tutorial:hover {
-  background: #666;
+  background: #5a6268;
 }
 
 /* Footer */
@@ -1075,13 +1070,20 @@
       margin-left: 280px;
       width: calc(100% - 280px);
     }
+
+    .source-item a {
+      font-size: 0.95rem;
+      padding: 0.75rem;
+    }
+
+    .sources-citations {
+      padding: 1.25rem;
+    }
   }
   
   
   /* Media Queries */
   @media (max-width: 768px) {
-
-
     .sidebar {
       width: 300px;
       transform: translateX(-100%);
@@ -1093,19 +1095,16 @@
       background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
     }
   
-    /* Show sidebar when active */
     .sidebar:not(.hidden) {
       transform: translateX(0);
     }
   
-    /* Adjust main content for mobile */
     .main-content {
       margin-left: 0;
       width: 100%;
       padding: 1rem;
     }
   
-    /* Main burger (open button) styles */
     .main-burger {
       opacity: 1;
       visibility: visible;
@@ -1116,19 +1115,16 @@
       z-index: 999;
     }
   
-    /* Make main burger more prominent on mobile */
     .main-burger span {
       width: 24px;
       height: 2.5px;
     }
   
-    /* Adjust sidebar burger position */
     .sidebar-burger {
       top: 1.25rem;
       right: 1rem;
     }
   
-    /* Add overlay when sidebar is open */
     .sidebar:not(.hidden)::before {
       content: '';
       position: fixed;
@@ -1140,41 +1136,98 @@
       backdrop-filter: blur(4px);
       z-index: -1;
     }
-
-    /* Prevents body scroll when sidebar is open */
+  
     body:has(.sidebar:not(.hidden)) {
       overflow: hidden;
     }
-  
-    .main-content {
-      margin-left: 0;
+
+    .verifier-form {
+      flex-direction: column;
+      align-items: center;
+      padding: 0 1rem;
     }
   
     .verifier-form input {
       width: 100%;
+      max-width: 100%;
+      margin-bottom: 1rem;
+    }
+  
+    .ai-button {
+      width: auto;
+      min-width: 160px;
+      max-width: none;
+      padding: 12px 24px;
+      font-size: 16px;
+    }
+  
+    .section-title {
+      font-size: 1.5rem;
+      padding: 0 1rem;
+    }
+  
+    .section-description {
+      font-size: 1rem;
+      padding: 0 1rem;
+      margin-bottom: 1.5rem;
+    }
+  
+    .result-container {
+      margin: 1rem;
+      padding: 1rem;
+    }
+  
+    .buttons-container {
+      justify-content: flex-end;
+      margin: 1.5rem 1rem;
+      flex-wrap: nowrap;
+    }
+  
+    .report-button {
+      width: auto;
+      min-width: 120px;
+      padding: 10px 20px;
+      font-size: 14px;
     }
 
-    .ai-button {
-    padding: 10px 20px; /* Reduce padding */
-    font-size: 14px; /* Slightly smaller font size */
-    border-radius: 6px; /* Slightly smaller border radius */
-    width: 90%; /* Full-width button for smaller screens */
-    max-width: 300px; /* Limit maximum width */
-  }
+    .source-item {
+      margin-bottom: 0.75rem;
+    }
 
-    .buttons-container {
-        justify-content: center; /* Center buttons on smaller screens */
-        margin-right: 0; /* Remove right margin */
-      }
-      .report-button,
-      .share-button {
-        font-size: 12px; /* Reduce font size for smaller screens */
-        padding: 8px 16px; /* Adjust padding */
-      }
+    .source-item a {
+      font-size: 0.9rem;
+      padding: 0.65rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+      max-width: 100%;
+    }
+
+    .sources-citations {
+      padding: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .source-citation {
+      padding: 0.65rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .source-link {
+      font-size: 0.9rem;
+    }
+
+    .sources-list {
+      margin: 0.5rem 0;
+    }
+
+    .source-content {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
   }
   
   @media screen and (max-width: 480px) {
-    /* Further adjustments for very small screens */
     .sidebar {
       width: 85%;
       max-width: 300px;
@@ -1209,6 +1262,69 @@
     .burger span {
       width: 22px;
       height: 2px;
+    }
+
+    .verifier-section {
+      margin-top: 3rem;
+    }
+  
+    .buttons-container {
+      margin: 1rem;
+    }
+
+    .ai-button, .report-button {
+      transform-origin: center;
+    }
+  
+    .star-image {
+      width: 20px;
+      height: 20px;
+    }
+  
+    .tutorial-container {
+      width: 95%;
+      margin: 1rem;
+    }
+  
+    .tutorial-header h2 {
+      font-size: 1.2rem;
+    }
+  
+    .tutorial-text {
+      font-size: 1rem;
+    }
+  
+    .tutorial-btn {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+
+    .source-item a {
+      font-size: 0.85rem;
+      padding: 0.5rem;
+    }
+
+    .sources-citations {
+      padding: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .source-citation {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .source-link {
+      font-size: 0.85rem;
+    }
+
+    .source-content {
+      font-size: 0.85rem;
+    }
+
+    .sources-citations h4 {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
     }
   }
   
